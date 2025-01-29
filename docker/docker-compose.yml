@@ -1,0 +1,138 @@
+#
+# Copyright © 2016-2025 The Thingsboard Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+services:
+  postgres:
+    restart: always
+    container_name: "${POSTGRES_NAME}"
+    image: "postgres:15"
+    ports:
+      - "5432"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "200m"
+        max-file: "5"
+    environment:
+      POSTGRES_DB: thingsboard_mqtt_broker
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - tbmq-postgres-data:/var/lib/postgresql/data
+  kafka:
+    restart: always
+    container_name: "${KAFKA_NAME}"
+    image: "bitnami/kafka:3.5.1"
+    ports:
+      - "9092"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "200m"
+        max-file: "5"
+    env_file:
+      - kafka.env
+    volumes:
+      - tbmq-kafka-data:/bitnami/kafka
+  tbmq1:
+    restart: always
+    container_name: "${TBMQ_1_NAME}"
+    image: "${DOCKER_REPO}/${DOCKER_NAME}:${TBMQ_VERSION}"
+    ports:
+      - "1883"
+      - "8083"
+      - "8084"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "200m"
+        max-file: "30"
+    environment:
+      TB_SERVICE_ID: tbmq1
+      #JAVA_OPTS: "${JAVA_OPTS}"
+    env_file:
+      - tb-mqtt-broker.env
+    volumes:
+      - tbmq-config:/config
+      - tbmq1-logs:/var/log/thingsboard-mqtt-broker
+    depends_on:
+      - postgres
+      - kafka
+  tbmq2:
+    restart: always
+    container_name: "${TBMQ_2_NAME}"
+    image: "${DOCKER_REPO}/${DOCKER_NAME}:${TBMQ_VERSION}"
+    ports:
+      - "1883"
+      - "8083"
+      - "8084"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "200m"
+        max-file: "30"
+    environment:
+      TB_SERVICE_ID: tbmq2
+      #JAVA_OPTS: "${JAVA_OPTS}"
+    env_file:
+      - tb-mqtt-broker.env
+    volumes:
+      - tbmq-config:/config
+      - tbmq2-logs:/var/log/thingsboard-mqtt-broker
+    depends_on:
+      - postgres
+      - kafka
+  haproxy:
+    restart: always
+    container_name: "${LOAD_BALANCER_NAME}"
+    image: thingsboard/haproxy-certbot:2.2.31-alpine3.18
+    volumes:
+      - tbmq-haproxy-config:/config
+      - tbmq-haproxy-letsencrypt:/etc/letsencrypt
+      - tbmq-haproxy-certs-d:/usr/local/etc/haproxy/certs.d
+    ports:
+      - "8083:8083"
+      - "443:443"
+      - "1883:1883"
+      - "8084:8084"
+    cap_add:
+      - NET_ADMIN
+    environment:
+      HTTP_PORT: 8083
+      HTTPS_PORT: 443
+      MQTT_PORT: 1883
+      MQTT_WS_PORT: 8084
+      FORCE_HTTPS_REDIRECT: "false"
+    links:
+      - tbmq1
+      - tbmq2
+
+volumes:
+  tbmq-postgres-data:
+    external: true
+  tbmq-kafka-data:
+    external: true
+  tbmq1-logs:
+    external: true
+  tbmq2-logs:
+    external: true
+  tbmq-config:
+    external: true
+  tbmq-haproxy-config:
+    external: true
+  tbmq-haproxy-letsencrypt:
+    external: true
+  tbmq-haproxy-certs-d:
+    external: true

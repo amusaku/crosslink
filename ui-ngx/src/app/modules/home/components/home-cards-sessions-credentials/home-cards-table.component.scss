@@ -1,0 +1,112 @@
+/**
+ * Copyright © 2016-2025 The Thingsboard Authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+@import 'constants';
+
+:host {
+  display: flex;
+  flex: 1 1 0;
+
+  .cards {
+    display: flex;
+    flex: 1 1 0;
+    justify-content: space-evenly;
+
+    .key-value {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      justify-content: space-between;
+      padding: 12px;
+      border-radius: 10px;
+      border: 1px solid #e0e0e0;
+      gap: 10px;
+      cursor: pointer;
+
+      &:hover {
+        box-shadow: 0 4px 10px rgba(23, 33, 90, 0.08);
+        border: 1px solid rgba(0,0,0,0.1);
+
+        .key-arrow {
+          &::after {
+            color: rgba(0, 0, 0, 0.54)
+          }
+        }
+      }
+    }
+
+    .key-value:first-child {
+      background-color: #f5f9f8;
+    }
+
+    .key-value:nth-child(2) {
+      background-color: #fff8f8;
+    }
+
+    .key-value:nth-child(3) {
+      background-color: #fcfcfc;
+    }
+
+    .key {
+      font-weight: 400;
+      font-size: 0.9rem;
+    }
+
+    .key-arrow {
+      &::after {
+        font-family: 'Material Icons';
+        content: 'arrow_forward';
+        display: inline-block;
+        transform: rotate(315deg);
+        font-weight: normal;
+        font-style: normal;
+        font-size: 1.1rem;
+        line-height: 1.1rem;
+        margin-left: 6px;
+        color: rgba(0, 0, 0, 0.12);
+        vertical-align: top;
+      }
+    }
+
+    .key-container {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .value {
+      font-size: 1.5rem;
+      font-weight: 500;
+      color: rgba(0,0,0,0.76);
+    }
+
+    @media #{$mat-lt-xl} {
+      .key-container {
+        justify-content: flex-start;
+      }
+      .key-value {
+        flex-direction: row;
+        align-items: center;
+      }
+      .key {
+        font-size: 0.9em;
+      }
+      .value {
+        font-size: 1.1em;
+      }
+    }
+  }
+}
+
